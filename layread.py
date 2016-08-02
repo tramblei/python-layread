@@ -1,0 +1,163 @@
+import inifile
+import numpy as np
+import pdb,traceback,sys
+import time
+
+def layread(layFileName,datFileName,timeOffset,timeLength):
+	"""input - file name of a .lay file that corresponds to a lay-dat pair
+		output:   	header - information from .lay file
+					record - EEG data from .dat file
+	"""
+	# takes ~8 min for a 1.5GB file
+	t = time.time()
+
+	# get .ini file and replace [] with ''
+	data,sections,subsections = inifile.inifile(layFileName,'readall') # sections and subsections currently unused
+	for row in data:
+		for entry in row:
+			if entry == []:
+				entry = ''
+
+	# find fileinfo section of .lay file and map to correct .dat file
+	fileInfoArray = []
+	for row in data:
+		if row[2] == 'file':
+			row[3] = datFileName
+		if row[0] == 'fileinfo':
+			fileInfoArray.append(row)
+
+	# fileinfo
+	fileinfo = {} # dictionary
+	for row in fileInfoArray:
+		fileinfo[row[2]] = row[3]
+
+	# patient
+	patient = {} # dictionary
+	for row in data:
+		if row[0] == 'patient':
+			patient[row[2]] = row[3]
+
+	# montage
+	montage = {} # dictionary
+	for row in data:
+		if row[0] == 'montage':
+			montage_data = [] # 2d nested list
+			for row_ in data:
+				if row[2] == row_[0]:
+					montage_data.append([row_[2],row_[3]])
+			montage[str(row[2])] = montage_data
+			
+	# sampletimes
+	sampletimes = [] # list of dictionaries
+	for row in data:
+		if row[0] == 'sampletimes':
+			sampletimes.append({'sample':float(row[2]),'time':float(row[3])})
+
+	# channelmap
+	channelmap = [] # list of strings
+	for row in data:
+		if row[0] == 'channelmap':
+			channelmap.append(row[2])
+
+	# move some info from raw header to header
+	header = {} # dictionary
+	if len(fileInfoArray) > 0:
+		# checking individual fields exist before moving them
+		if 'file' in fileinfo:
+			header['datafile'] = fileinfo['file']
+		if 'samplingrate' in fileinfo:
+			header['samplingrate'] = int(fileinfo['samplingrate'])
+		if 'waveformcount' in fileinfo:
+			header['waveformcount'] = int(fileinfo['waveformcount'])
+	# make start time into one standard form
+	# NOT IMPLEMENTED date = strrep(rawhdr.patient.testdate,'.','/')
+	# NOT IMPLEMENTED time = strrep(rawhdr.patient.testtime,'.',':')
+	# NOT IMPLEMENTED dn = datenum(strcat(date, ',', time));
+	header['starttime'] = patient['testdate'].replace('.','/') + ',' + patient['testtime'] # = dn
+	header['patient'] = patient
+
+	# comments
+	try:
+		lay_file_ID = open(layFileName,'r')
+	except:
+		raise Exception('Error in open: file not found')
+	comments_ = 0
+	cnum = 0
+	comments = [] # list of strings
+	annotations = [] # list of dictionaries
+	for tline in lay_file_ID:
+		if 1 == comments_:
+			contents = tline.split(',')
+			if len(contents) < 5:
+				break # there are no more comments
+			elif len(contents) > 5:
+				separator = ','
+				contents[4] = separator.join(contents[4:len(contents)])
+			# raw header contains just the original lines
+			comments.append(tline.strip())
+			samplenum = float(contents[0])*float(fileinfo['samplingrate'])
+			# this calcuates sample time
+			i = 0
+			while i < len(sampletimes)-1 and samplenum > sampletimes[i+1]['sample']:
+				i=i+1
+			samplenum -= sampletimes[i]['sample']
+			samplesec = samplenum / float(fileinfo['samplingrate'])
+			timesec = samplesec + sampletimes[i]['time']
+			commenttime = timesec # should be converted to HH:MM:SS
+			# use date calculated earlier
+			dn = patient['testdate'] + ',' + str(commenttime)
+			annotations.append({'time':dn,'duration':float(contents[1]),'text':contents[4]})
+			# annotations[cnum] = {'time':dn} # previously datetime(dn,'ConvertFrom','datenum')
+			# annotations[cnum] = {'duration':float(contents[1])}
+			# annotations[cnum] = {'text':contents[4]}
+			cnum += 1
+		elif tline[0:9] == '[Comments]'[0:9]:
+			# read until get to comments
+			comments_ = 1
+	lay_file_ID.close()
+	
+	header['annotations'] = annotations # add to header dictionary
+	rawhdr = {} # dictionary to represent rawhdr struct
+	rawhdr['fileinfo'] = fileinfo
+	rawhdr['patient'] = patient
+	rawhdr['sampletimes'] = sampletimes
+	rawhdr['channelmap'] = channelmap
+	rawhdr['comments'] = comments
+	rawhdr['montage'] = montage
+	header['rawheader'] = rawhdr # put raw header in header
+
+	# dat file
+	try:
+		dat_file_ID = open(datFileName,'rb')
+	except:
+		raise Exception('Error in open: file not found')
+	recnum = float(rawhdr['fileinfo']['waveformcount'])
+	recnum = int(recnum)
+	calibration = float(rawhdr['fileinfo']['calibration'])
+	if rawhdr['fileinfo']['datatype'] == 7:
+		precision = 'int'
+		dat_file_ID.seek(recnum*4*timeOffset,1)
+	else:
+		precision = 'int16'
+		dat_file_ID.seek(recnum*2*timeOffset,1)
+
+	# read data from .dat file into array of correct size, then calibrate
+	# records = recnum rows x inf columns
+	if timeLength == -1:
+		toRead = -1 # elements of size precision to read
+	else:
+		toRead = timeLength*recnum
+	record = np.fromfile(dat_file_ID,dtype=precision,count=toRead) * calibration
+	dat_file_ID.close()
+	record = np.reshape(record,(recnum,-1),'F') # recnum rows
+
+	elapsed = (time.time() - t) / 60
+	return (header,record)
+
+if __name__ == '__main__':
+	try:
+		layread('lay.lay','dat.dat',3,5) # sample lay and dat files i was using
+	except:
+		type,value,tb = sys.exc_info()
+		traceback.print_exc()
+		pdb.post_mortem(tb)

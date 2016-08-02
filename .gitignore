@@ -1,0 +1,10 @@
+# file types
+*.m
+*.dat
+*.lay
+*.txt
+*.mat
+*.pyc
+
+# specfic files
+test.py
