@@ -5,6 +5,7 @@
 *.txt
 *.mat
 *.pyc
+*.asv
 
 # specfic files
 test.py

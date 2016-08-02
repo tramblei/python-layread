@@ -4,10 +4,17 @@ import pdb,traceback,sys
 import time
 
 def layread(layFileName,datFileName,timeOffset,timeLength):
-	"""input - file name of a .lay file that corresponds to a lay-dat pair
-		output:   	header - information from .lay file
-					record - EEG data from .dat file
 	"""
+	inputs:
+		layFileName - the .lay file name (or path)
+		datFileName - the .dat file name (or path)
+		timeOffset - the number of time steps to ignore (so if this was set to 3 for example, the file reader would extract data for time steps 4 to the end)
+		timeLength - the number of time steps to read (so if this was set to 5 and timeOffset was set to 3, the file reader would read data for time steps 4,5,6,7,8). If this parameter is set to -1, then the whole .dat file is read.
+	outputs:   	
+		header - information from .lay file
+		record - EEG data from .dat file
+	"""
+	
 	# takes ~8 min for a 1.5GB file
 	t = time.time()
 

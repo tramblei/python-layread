@@ -1,9 +1,21 @@
 def inifile(fileName,operation):
+	"""
+	inifile creates, reads, or writes data from/to a standard ini (ascii)
+       file. Such a file is organized into sections
+      ([section name]), subsections(enclosed by {subsection name}),
+      and keys (key=value).  Empty lines and lines with the first non-empty
+      character being ; (comment lines) are ignored.
+     
+     Usage:
+     	[keys,sections,subsections] = INIFILE(fName,'readall')
+ 			Reads entire file and returns all the sections, subsections
+ 			and keys found.
+	"""
 
-	if operation == 'readall':
-		keys,sections,subsections = ReadAllKeys(fileName)
-		return (keys,sections,subsections)
-	else:
+	if operation == 'readall': 
+		keys,sections,subsections = ReadAllKeys(fileName) 
+		return (keys,sections,subsections) 
+	else: 
 		raise Exception('Invalid operation passed to Inifile')
 
 def ReadAllKeys(fileName):
