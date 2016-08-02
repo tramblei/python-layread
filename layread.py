@@ -134,7 +134,7 @@ def layread(layFileName,datFileName,timeOffset,timeLength):
 	recnum = float(rawhdr['fileinfo']['waveformcount'])
 	recnum = int(recnum)
 	calibration = float(rawhdr['fileinfo']['calibration'])
-	if rawhdr['fileinfo']['datatype'] == 7:
+	if int(rawhdr['fileinfo']['datatype']) == 7:
 		precision = 'int'
 		dat_file_ID.seek(recnum*4*timeOffset,1)
 	else:
@@ -156,7 +156,7 @@ def layread(layFileName,datFileName,timeOffset,timeLength):
 
 if __name__ == '__main__':
 	try:
-		layread('lay.lay','dat.dat',3,5) # sample lay and dat files i was using
+		layread('lay.lay','dat.dat',0,3) # sample lay and dat files i was using
 	except:
 		type,value,tb = sys.exc_info()
 		traceback.print_exc()
