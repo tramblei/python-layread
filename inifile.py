@@ -63,19 +63,19 @@ def ProcessIniLine(line):
    		- value:    value-string of a key, section, subsection, comment, or unknown string
    		- key:      key as string
    	"""
-   	status = 0
-   	key = '' # default; only return value possibly not set
-   	line = line.strip() # remove leading and trailing spaces
-   	endIdx = len(line)-1
-   	if not line: # empty sequence evaluates to false
-   		status = 0
-   		key = ''
-   		value = ''
-   		return (status,key,value)
-   	elif line[0]==';': # comment found
-   		status = 4
-   		value = line[1:endIdx+1]
-   	elif (line[0] == '[') and (line[endIdx] == ']') and (endIdx+1 >= 3): # section found
+	status = 0
+	key = '' # default; only return value possibly not set
+	line = line.strip() # remove leading and trailing spaces
+	endIdx = len(line)-1
+	if not line: # empty sequence evaluates to false
+		status = 0
+		key = ''
+		value = ''
+		return (status,key,value)
+	elif line[0]==';': # comment found
+		status = 4
+		value = line[1:endIdx+1]
+	elif (line[0] == '[') and (line[endIdx] == ']') and (endIdx+1 >= 3): # section found
 		status = 1
 		value = line[1:endIdx].lower()
 	elif (line[0] == '{') and (line[endIdx] == '}') and (endIdx+1 >= 3): # subsection found
