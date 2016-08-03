@@ -3,7 +3,7 @@ import numpy as np
 import pdb,traceback,sys
 import time
 
-def layread(layFileName,datFileName,timeOffset,timeLength):
+def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	"""
 	inputs:
 		layFileName - the .lay file name (or path)
