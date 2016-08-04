@@ -2,6 +2,8 @@ import inifile
 import numpy as np
 import pdb,traceback,sys
 import time
+from time import mktime
+from datetime import datetime
 
 def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	"""
@@ -76,11 +78,12 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 			header['samplingrate'] = int(fileinfo['samplingrate'])
 		if 'waveformcount' in fileinfo:
 			header['waveformcount'] = int(fileinfo['waveformcount'])
-	# make start time into one standard form
-	# NOT IMPLEMENTED date = strrep(rawhdr.patient.testdate,'.','/')
-	# NOT IMPLEMENTED time = strrep(rawhdr.patient.testtime,'.',':')
-	# NOT IMPLEMENTED dn = datenum(strcat(date, ',', time));
-	header['starttime'] = patient['testdate'].replace('.','/') + ',' + patient['testtime'] # = dn
+	date = patient['testdate'].replace('.','/')
+	tim = patient['testtime'].replace('.',':')
+	dt = time.strptime(date + ',' + tim,'%m/%d/%y,%H:%M:%S')
+	dt = datetime.fromtimestamp(mktime(dt))
+	dt = dt.strftime('%d-%b-%Y %H:%M:%S') # convert date and time to standard format
+	header['starttime'] = dt
 	header['patient'] = patient
 
 	# comments
@@ -110,9 +113,11 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 			samplenum -= sampletimes[i]['sample']
 			samplesec = samplenum / float(fileinfo['samplingrate'])
 			timesec = samplesec + sampletimes[i]['time']
-			commenttime = timesec # should be converted to HH:MM:SS
-			# use date calculated earlier
+			commenttime = time.strftime('%H:%M:%S',time.gmtime(timesec)) # should be converted to HH:MM:SS
 			dn = patient['testdate'] + ',' + str(commenttime)
+			dn = time.strptime(dn,'%m/%d/%y,%H:%M:%S')
+			dn = datetime.fromtimestamp(mktime(dn))
+			dn = dn.strftime('%d-%b-%Y %H:%M:%S') # convert date and time to standard format
 			annotations.append({'time':dn,'duration':float(contents[1]),'text':contents[4]})
 			# annotations[cnum] = {'time':dn} # previously datetime(dn,'ConvertFrom','datenum')
 			# annotations[cnum] = {'duration':float(contents[1])}
@@ -163,7 +168,7 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 
 if __name__ == '__main__':
 	try:
-		layread('lay.lay','dat.dat',0,3) # sample lay and dat files i was using
+		layread("\Users\Ian\Documents\Adaptive Stimulation\FileReader\skAnonShort.lay","\Users\Ian\Documents\Adaptive Stimulation\FileReader\skAnonShort.dat") # sample lay and dat files i was using
 	except:
 		type,value,tb = sys.exc_info()
 		traceback.print_exc()
