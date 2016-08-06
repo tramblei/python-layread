@@ -142,10 +142,10 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
     recnum = int(recnum)
     calibration = float(rawhdr['fileinfo']['calibration'])
     if int(rawhdr['fileinfo']['datatype']) == 7:
-        precision = 'int32'
+        precision = 'float32'
         dat_file_ID.seek(recnum*4*timeOffset,1)
     else:
-        precision = 'int16'
+        precision = 'float16'
         dat_file_ID.seek(recnum*2*timeOffset,1)
 
     # read data from .dat file into array of correct size, then calibrate
