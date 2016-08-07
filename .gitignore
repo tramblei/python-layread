@@ -9,7 +9,7 @@
 *.xls
 *.xlsx
 *.csv
-*.png
+*.png*.rtf
 
 # specfic files
 test.py

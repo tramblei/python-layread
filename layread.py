@@ -21,7 +21,7 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	t = time.time()
 
 	# get .ini file and replace [] with ''
-	data,sections,subsections = inifile.inifile(layFileName,'readall') # sections and subsections currently unused
+    data, sections, subsections = inifile.inifile(layFileName,'readall') # sections and subsections currently unused
 	for row in data:
 		for entry in row:
 			if entry == []:
@@ -78,6 +78,7 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 			header['samplingrate'] = int(fileinfo['samplingrate'])
 		if 'waveformcount' in fileinfo:
 			header['waveformcount'] = int(fileinfo['waveformcount'])
+	# NOT IMPLEMENTED dn = datenum(strcat(date, ',', time));
 	date = patient['testdate'].replace('.','/')
 	tim = patient['testtime'].replace('.',':')
 	dt = time.strptime(date + ',' + tim,'%m/%d/%y,%H:%M:%S')
@@ -147,9 +148,9 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	recnum = int(recnum)
 	calibration = float(rawhdr['fileinfo']['calibration'])
 	if int(rawhdr['fileinfo']['datatype']) == 7:
-		precision = 'int32'
-		dat_file_ID.seek(recnum*4*timeOffset,1)
+		precision = 'int32'		dat_file_ID.seek(recnum*4*timeOffset,1)
 	else:
+        #precision = 'float16'
 		precision = 'int16'
 		dat_file_ID.seek(recnum*2*timeOffset,1)
 
