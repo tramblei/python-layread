@@ -147,7 +147,7 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	recnum = int(recnum)
 	calibration = float(rawhdr['fileinfo']['calibration'])
 	if int(rawhdr['fileinfo']['datatype']) == 7:
-		precision = 'int'
+		precision = 'int32'
 		dat_file_ID.seek(recnum*4*timeOffset,1)
 	else:
 		precision = 'int16'
@@ -162,7 +162,6 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 	record = np.fromfile(dat_file_ID,dtype=precision,count=toRead) * calibration
 	dat_file_ID.close()
 	record = np.reshape(record,(recnum,-1),'F') # recnum rows
-
 	elapsed = (time.time() - t) / 60
 	return (header,record)
 
