@@ -160,11 +160,11 @@ def layread(layFileName,datFileName,timeOffset=0,timeLength=-1):
 		toRead = -1 # elements of size precision to read
 	else:
 		toRead = timeLength*recnum
-
-	record = np.fromfile(dat_file_ID,dtype=precision,count=toRead) * calibration
+	record = np.fromfile(dat_file_ID,dtype=precision,count=toRead)
 	dat_file_ID.close()
+	record = record * calibration # explicit
 	record = np.reshape(record,(recnum,-1),'F') # recnum rows
-	record = record.astype(precision) # convert to required precision to avoid default float64
+	record = record.astype(np.float32) # cast as float32; more than enough precision
 
 	# elapsed time (in min)
 	elapsed = (time.time() - t) / 60
